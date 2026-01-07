@@ -3,192 +3,242 @@ local TweenService = game:GetService("TweenService")
 local LocalPlayer = Players.LocalPlayer
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
+local StarterGui = game:GetService("StarterGui")
 
 local character
 local humanoid
 local rootPart
 local camera = workspace.CurrentCamera
-local communicate -- RemoteEvent để dash
+local communicate
 
 local currentCharacter
 local currentRootPart
 
 local lastDashTime = 0
-local cooldown = 6 -- hồi chiêu 6 giây
-local toggleEnabled = true -- bật/tắt dash
+local cooldown = 6
+local toggleEnabled = true
 
--- ====== TÌM MODEL GẦN NHẤT ======
-local function findClosestModelWithRootPart()
-if not currentRootPart then
-return nil
-end
-
-local closestModel = nil  
-local smallestDistance = 20 -- khoảng cách tối đa để nhắm  
-
-for _, descendant in pairs(workspace:GetDescendants()) do  
-    if descendant:IsA("Model") and descendant:FindFirstChild("HumanoidRootPart") and descendant ~= currentCharacter then  
-        local ok, distance = pcall(function()  
-            return (currentRootPart.Position - descendant.HumanoidRootPart.Position).Magnitude  
-        end)  
-
-        if ok and distance and distance < smallestDistance then  
-            closestModel = descendant  
-            smallestDistance = distance  
-        end  
-    end  
-end  
-
-return closestModel
-
-end
-
--- ====== DASH ======
-local function sendDash()
-if not character or not communicate then return end
+-- ====== THÔNG BÁO KHI LOAD ======
 pcall(function()
-local payload = {
-{
-Dash = Enum.KeyCode.W,
-Key = Enum.KeyCode.Q,
-Goal = "KeyPress"
-}
-}
-communicate:FireServer(unpack(payload))
+	StarterGui:SetCore("SendNotification", {
+		Title = "Loichatpt LIX V2 Tech",
+		Text = "PINK VERSION🌷💝💖",
+		Duration = 4
+	})
 end)
-end
 
--- ====== QUAY CAMERA 180° ======
-local function rotateCamera180()
-if not rootPart then return end
-local currentCFrame = camera.CFrame
-local lookVector = rootPart.CFrame.LookVector
-local newCFrame = CFrame.new(currentCFrame.Position, currentCFrame.Position - lookVector)
-camera.CFrame = newCFrame
-end
-
--- ====== ANIMATION ID ĐÁNH ======
-local ATTACK_ANIMS = {
-"10503381238",
-"13379003796"
-}
-
-local function isAttackAnimation(animId)
-for _, id in pairs(ATTACK_ANIMS) do
-if string.find(animId, id, 1, true) then
-return true
-end
-end
-return false
-end
-
--- ====== XỬ LÝ ANIMATION ======
-local function onAnimationPlayed(track)
-if not toggleEnabled then return end
-if not track or not track.Animation then return end
-
-local animId = tostring(track.Animation.AnimationId)  
-if isAttackAnimation(animId) then  
-	-- Hồi chiêu  
-	if tick() - lastDashTime < cooldown then  
-		return  
-	end  
-
-	-- Tìm target gần  
-	local target = findClosestModelWithRootPart()  
-	if target then  
-		lastDashTime = tick() -- reset cooldown  
-		-- Nếu có target mới dash  
-		task.delay(0.4, function()  
-			sendDash()  
-			task.delay(0.2, rotateCamera180)  
-		end)  
-	end  
-end
-
-end
-
--- ====== SETUP CHARACTER ======
-local function onCharacterAdded(char)
-character = char
-currentCharacter = char
-humanoid = char:WaitForChild("Humanoid")
-rootPart = char:WaitForChild("HumanoidRootPart")
-currentRootPart = rootPart
-communicate = char:FindFirstChild("Communicate") -- RemoteEvent dash
-
-humanoid.AnimationPlayed:Connect(onAnimationPlayed)  
-
-local animator = humanoid:FindFirstChildOfClass("Animator")  
-if animator then  
-	animator.AnimationPlayed:Connect(onAnimationPlayed)  
-end
-
-end
-
-LocalPlayer.CharacterAdded:Connect(onCharacterAdded)
-if LocalPlayer.Character then
-onCharacterAdded(LocalPlayer.Character)
-end
-
--- ====== MENU KÉO ĐƯỢC ======
+-- ====== GUI ======
 local gui = Instance.new("ScreenGui")
-gui.Name = "LoichatptMenuGui"
+gui.Name = "LIXV2Gui"
+gui.ResetOnSpawn = false
 gui.Parent = LocalPlayer:WaitForChild("PlayerGui")
 
 local toggleButton = Instance.new("TextButton")
-toggleButton.Size = UDim2.new(0, 160, 0, 30)
+toggleButton.Size = UDim2.new(0, 170, 0, 32)
 toggleButton.Position = UDim2.new(0.4, 0, 0.8, 0)
-toggleButton.Text = "Loichatpt tech: On"
+toggleButton.Text = "LIX V2 Tech: ON"
 toggleButton.Font = Enum.Font.GothamBold
 toggleButton.TextScaled = true
-toggleButton.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
 toggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+toggleButton.BackgroundColor3 = Color3.fromRGB(255, 105, 180)
 toggleButton.ZIndex = 9999
 toggleButton.Parent = gui
 
 local corner = Instance.new("UICorner")
-corner.CornerRadius = UDim.new(0, 8)
+corner.CornerRadius = UDim.new(0, 10)
 corner.Parent = toggleButton
 
--- Kéo menu
-local dragging = false
-local dragInput, dragStart, startPos
+-- ====== COOLDOWN BAR 💖 ======
+local cooldownGui = Instance.new("Frame")
+cooldownGui.Size = UDim2.new(0, 8, 0, 120)
+cooldownGui.Position = UDim2.new(0, 12, 0.4, 0)
+cooldownGui.BackgroundColor3 = Color3.fromRGB(255, 180, 200)
+cooldownGui.BackgroundTransparency = 0.4
+cooldownGui.Visible = false
+cooldownGui.ZIndex = 9999
+cooldownGui.Parent = gui
 
-toggleButton.InputBegan:Connect(function(input)
-if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-dragging = true
-dragStart = input.Position
-startPos = toggleButton.Position
+local cdCorner = Instance.new("UICorner")
+cdCorner.CornerRadius = UDim.new(1, 0)
+cdCorner.Parent = cooldownGui
 
-input.Changed:Connect(function()  
-		if input.UserInputState == Enum.UserInputState.End then  
-			dragging = false  
-		end  
-	end)  
+local cooldownFill = Instance.new("Frame")
+cooldownFill.Size = UDim2.new(1, 0, 1, 0)
+cooldownFill.BackgroundColor3 = Color3.fromRGB(255, 105, 180)
+cooldownFill.BorderSizePixel = 0
+cooldownFill.Parent = cooldownGui
+
+local fillCorner = Instance.new("UICorner")
+fillCorner.CornerRadius = UDim.new(1, 0)
+fillCorner.Parent = cooldownFill
+
+local function startCooldownBar()
+	cooldownGui.Visible = true
+	cooldownFill.Size = UDim2.new(1, 0, 1, 0)
+
+	local tween = TweenService:Create(
+		cooldownFill,
+		TweenInfo.new(cooldown, Enum.EasingStyle.Linear),
+		{ Size = UDim2.new(1, 0, 0, 0) }
+	)
+
+	tween:Play()
+	tween.Completed:Wait()
+	cooldownGui.Visible = false
 end
 
+-- ====== TÌM TARGET ======
+local function findClosestModelWithRootPart()
+	if not currentRootPart then return nil end
+
+	local closestModel
+	local smallestDistance = 20
+
+	for _, descendant in pairs(workspace:GetDescendants()) do
+		if descendant:IsA("Model")
+			and descendant:FindFirstChild("HumanoidRootPart")
+			and descendant ~= currentCharacter then
+
+			local ok, distance = pcall(function()
+				return (currentRootPart.Position - descendant.HumanoidRootPart.Position).Magnitude
+			end)
+
+			if ok and distance and distance < smallestDistance then
+				closestModel = descendant
+				smallestDistance = distance
+			end
+		end
+	end
+
+	return closestModel
+end
+
+-- ====== DASH ======
+local function sendDash()
+	if not character or not communicate then return end
+
+	local payload = {{
+		Dash = Enum.KeyCode.W,
+		Key = Enum.KeyCode.Q,
+		Goal = "KeyPress"
+	}}
+
+	pcall(function()
+		communicate:FireServer(unpack(payload))
+	end)
+end
+
+-- ====== QUAY CAMERA ======
+local function rotateCamera165()
+	if not rootPart then return end
+	local lookVector = rootPart.CFrame.LookVector
+	camera.CFrame = CFrame.new(camera.CFrame.Position, camera.CFrame.Position - lookVector)
+end
+
+-- ====== ANIM ======
+local ATTACK_ANIMS = {
+	"10503381238",
+	"13379003796"
+}
+
+local function isAttackAnimation(animId)
+	for _, id in pairs(ATTACK_ANIMS) do
+		if string.find(animId, id, 1, true) then
+			return true
+		end
+	end
+	return false
+end
+
+-- ====== BẮT ĐÁNH ======
+local function onAnimationPlayed(track)
+	if not toggleEnabled then return end
+	if not track or not track.Animation then return end
+
+	local animId = tostring(track.Animation.AnimationId)
+	if isAttackAnimation(animId) then
+		if tick() - lastDashTime < cooldown then return end
+
+		local target = findClosestModelWithRootPart()
+		if target then
+			lastDashTime = tick()
+			task.spawn(startCooldownBar)
+
+			task.delay(0.26, function()
+				sendDash()
+				task.delay(0.2, rotateCamera165)
+			end)
+		end
+	end
+end
+
+-- ====== CHARACTER ======
+local function onCharacterAdded(char)
+	character = char
+	currentCharacter = char
+	humanoid = char:WaitForChild("Humanoid")
+	rootPart = char:WaitForChild("HumanoidRootPart")
+	currentRootPart = rootPart
+	communicate = char:FindFirstChild("Communicate")
+
+	humanoid.AnimationPlayed:Connect(onAnimationPlayed)
+
+	local animator = humanoid:FindFirstChildOfClass("Animator")
+	if animator then
+		animator.AnimationPlayed:Connect(onAnimationPlayed)
+	end
+end
+
+LocalPlayer.CharacterAdded:Connect(onCharacterAdded)
+if LocalPlayer.Character then
+	onCharacterAdded(LocalPlayer.Character)
+end
+
+-- ====== KÉO MENU ======
+local dragging, dragInput, dragStart, startPos
+
+toggleButton.InputBegan:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseButton1
+	or input.UserInputType == Enum.UserInputType.Touch then
+		dragging = true
+		dragStart = input.Position
+		startPos = toggleButton.Position
+
+		input.Changed:Connect(function()
+			if input.UserInputState == Enum.UserInputState.End then
+				dragging = false
+			end
+		end)
+	end
 end)
 
 toggleButton.InputChanged:Connect(function(input)
-if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
-dragInput = input
-end
+	if input.UserInputType == Enum.UserInputType.MouseMovement
+	or input.UserInputType == Enum.UserInputType.Touch then
+		dragInput = input
+	end
 end)
 
 UserInputService.InputChanged:Connect(function(input)
-if input == dragInput and dragging and startPos then
-local delta = input.Position - dragStart
-toggleButton.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
-end
+	if input == dragInput and dragging then
+		local delta = input.Position - dragStart
+		toggleButton.Position = UDim2.new(
+			startPos.X.Scale,
+			startPos.X.Offset + delta.X,
+			startPos.Y.Scale,
+			startPos.Y.Offset + delta.Y
+		)
+	end
 end)
 
--- Bật/tắt dash khi click
+-- ====== TOGGLE ======
 toggleButton.MouseButton1Click:Connect(function()
-toggleEnabled = not toggleEnabled
-if toggleEnabled then
-toggleButton.Text = "Loichatpt LIX tech: On"
-else
-toggleButton.Text = "Loichatpt LIX tech: Off"
-end
+	toggleEnabled = not toggleEnabled
+	if toggleEnabled then
+		toggleButton.Text = "LIX V2 Tech: ON"
+		toggleButton.BackgroundColor3 = Color3.fromRGB(255, 105, 180)
+	else
+		toggleButton.Text = "LIX V2 Tech: OFF"
+		toggleButton.BackgroundColor3 = Color3.fromRGB(140, 140, 140)
+	end
 end)
