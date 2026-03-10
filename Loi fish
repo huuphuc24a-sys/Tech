@@ -17,15 +17,31 @@ local X3,Y3 = 974,230
 local gui = Instance.new("ScreenGui",player.PlayerGui)
 gui.ResetOnSpawn = false
 
--- INTRO
-local intro = Instance.new("TextLabel",gui)
-intro.Size = UDim2.new(1,0,1,0)
-intro.BackgroundTransparency = 1
-intro.Text = "LOI KINGFISH"
-intro.TextScaled = true
-intro.TextColor3 = Color3.new(1,1,1)
-intro.Font = Enum.Font.GothamBold
+-- INTRO 
+local TweenService = game:GetService("TweenService")
 
+-- INTRO CIRCLE
+local circle = Instance.new("Frame",gui)
+circle.AnchorPoint = Vector2.new(0.5,0.5)
+circle.Position = UDim2.new(0.5,0,0.5,0)
+circle.Size = UDim2.new(0,10,0,10)
+circle.BackgroundColor3 = Color3.new(1,1,1)
+circle.BorderSizePixel = 0
+
+local corner = Instance.new("UICorner",circle)
+corner.CornerRadius = UDim.new(1,0)
+
+-- INTRO TEXT
+local introText = Instance.new("TextLabel",gui)
+introText.AnchorPoint = Vector2.new(0.5,0.5)
+introText.Position = UDim2.new(0.5,0,0.5,0)
+introText.Size = UDim2.new(0,600,0,200)
+introText.BackgroundTransparency = 1
+introText.Text = "LOI KINGFISH"
+introText.TextColor3 = Color3.new(0,0,0)
+introText.TextScaled = true
+introText.Font = Enum.Font.GothamBlack
+introText.TextTransparency = 1
 -- MAIN MENU
 local frame = Instance.new("Frame",gui)
 frame.Size = UDim2.new(0,200,0,210)
@@ -235,14 +251,33 @@ end)
 
 -- INTRO
 task.spawn(function()
-task.wait(5)
 
-for i = 1,20 do  
-	intro.TextTransparency = i/20  
-	task.wait(0.05)  
-end  
+	-- phóng to vòng tròn
+	local tween = TweenService:Create(
+		circle,
+		TweenInfo.new(0.6,Enum.EasingStyle.Quad,Enum.EasingDirection.Out),
+		{Size = UDim2.new(0,3000,0,3000)}
+	)
 
-intro:Destroy()  
-frame.Visible = true
+	tween:Play()
+	tween.Completed:Wait()
+
+	-- hiện chữ
+	introText.TextTransparency = 0
+
+	-- đợi 5 giây
+	task.wait(5)
+
+	-- fade toàn bộ
+	for i=1,30 do
+		introText.TextTransparency = i/30
+		circle.BackgroundTransparency = i/30
+		task.wait(0.03)
+	end
+
+	circle:Destroy()
+	introText:Destroy()
+
+	frame.Visible = true
 
 end)
