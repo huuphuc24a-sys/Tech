@@ -1,122 +1,175 @@
 local Players = game:GetService("Players")
 local VirtualInputManager = game:GetService("VirtualInputManager")
+local UIS = game:GetService("UserInputService")
+
 local player = Players.LocalPlayer
 
 local autoFarm = false
+local coordMode = false
+local step = 1
 
--- tọa độ click
+-- tọa độ mặc định
 local X1,Y1 = 801,378
 local X2,Y2 = 974,176
 local X3,Y3 = 974,230
 
 -- GUI
-local gui = Instance.new("ScreenGui")
-gui.Parent = player.PlayerGui
+local gui = Instance.new("ScreenGui",player.PlayerGui)
 gui.ResetOnSpawn = false
 
--- INTRO TEXT
-local intro = Instance.new("TextLabel")
+-- INTRO
+local intro = Instance.new("TextLabel",gui)
 intro.Size = UDim2.new(1,0,1,0)
 intro.BackgroundTransparency = 1
 intro.Text = "LOI KINGFISH"
 intro.TextScaled = true
 intro.TextColor3 = Color3.new(1,1,1)
 intro.Font = Enum.Font.GothamBold
-intro.Parent = gui
 
--- MENU FRAME
-local frame = Instance.new("Frame")
-frame.Size = UDim2.new(0,160,0,120)
-frame.Position = UDim2.new(0.5,-80,0.5,-60)
+-- MAIN MENU
+local frame = Instance.new("Frame",gui)
+frame.Size = UDim2.new(0,200,0,210)
+frame.Position = UDim2.new(0.5,-100,0.5,-100)
 frame.BackgroundColor3 = Color3.fromRGB(30,30,30)
 frame.Active = true
 frame.Draggable = true
 frame.Visible = false
-frame.Parent = gui
 
-local title = Instance.new("TextLabel")
+local title = Instance.new("TextLabel",frame)
 title.Size = UDim2.new(1,0,0,30)
 title.Text = "Auto Farm"
 title.TextColor3 = Color3.new(1,1,1)
 title.BackgroundColor3 = Color3.fromRGB(50,50,50)
-title.Parent = frame
 
-local farmBtn = Instance.new("TextButton")
+-- AUTO FARM
+local farmBtn = Instance.new("TextButton",frame)
 farmBtn.Size = UDim2.new(1,-20,0,35)
 farmBtn.Position = UDim2.new(0,10,0,40)
 farmBtn.Text = "Auto Farm: OFF"
 farmBtn.BackgroundColor3 = Color3.fromRGB(70,70,70)
 farmBtn.TextColor3 = Color3.new(1,1,1)
-farmBtn.Parent = frame
 
-local miniBtn = Instance.new("TextButton")
-miniBtn.Size = UDim2.new(1,-20,0,25)
-miniBtn.Position = UDim2.new(0,10,0,80)
-miniBtn.Text = "Minimize"
-miniBtn.BackgroundColor3 = Color3.fromRGB(70,70,70)
-miniBtn.TextColor3 = Color3.new(1,1,1)
-miniBtn.Parent = frame
+-- CUSTOM COORD
+local setBtn = Instance.new("TextButton",frame)
+setBtn.Size = UDim2.new(1,-20,0,30)
+setBtn.Position = UDim2.new(0,10,0,80)
+setBtn.Text = "Custom Coordinates"
+setBtn.BackgroundColor3 = Color3.fromRGB(70,70,70)
+setBtn.TextColor3 = Color3.new(1,1,1)
 
--- nút mở lại
-local openBtn = Instance.new("TextButton")
-openBtn.Size = UDim2.new(0,40,0,40)
-openBtn.Position = UDim2.new(0,100,0.5,0)
-openBtn.Text = "OPEN"
-openBtn.Visible = false
-openBtn.BackgroundColor3 = Color3.fromRGB(40,40,40)
-openBtn.TextColor3 = Color3.new(1,1,1)
-openBtn.Parent = gui
+-- COORD TOOL
+local toolBtn = Instance.new("TextButton",frame)
+toolBtn.Size = UDim2.new(1,-20,0,30)
+toolBtn.Position = UDim2.new(0,10,0,120)
+toolBtn.Text = "Coordinate Tool: OFF"
+toolBtn.BackgroundColor3 = Color3.fromRGB(70,70,70)
+toolBtn.TextColor3 = Color3.new(1,1,1)
 
--- click function
-local function click(x,y)
-    VirtualInputManager:SendMouseButtonEvent(x,y,0,true,game,0)
-    task.wait(0.01)
-    VirtualInputManager:SendMouseButtonEvent(x,y,0,false,game,0)
+-- SETTINGS FRAME (SCROLL FIX)
+local setFrame = Instance.new("ScrollingFrame",gui)
+setFrame.Size = UDim2.new(0,260,0,200)
+setFrame.Position = UDim2.new(0.5,-130,0.5,-100)
+setFrame.BackgroundColor3 = Color3.fromRGB(25,25,25)
+setFrame.Visible = false
+setFrame.Active = true
+setFrame.Draggable = true
+setFrame.ScrollBarThickness = 6
+setFrame.CanvasSize = UDim2.new(0,0,0,260)
+
+local function createCoord(name,posY,defaultX,defaultY)
+
+	local label = Instance.new("TextLabel",setFrame)
+	label.Size = UDim2.new(1,0,0,20)
+	label.Position = UDim2.new(0,0,0,posY)
+	label.Text = name
+	label.TextColor3 = Color3.new(1,1,1)
+	label.BackgroundTransparency = 1
+
+	local boxX = Instance.new("TextBox",setFrame)
+	boxX.Size = UDim2.new(0,110,0,25)
+	boxX.Position = UDim2.new(0,10,0,posY+25)
+	boxX.Text = tostring(defaultX)
+	boxX.BackgroundColor3 = Color3.fromRGB(50,50,50)
+	boxX.TextColor3 = Color3.new(1,1,1)
+
+	local boxY = Instance.new("TextBox",setFrame)
+	boxY.Size = UDim2.new(0,110,0,25)
+	boxY.Position = UDim2.new(0,140,0,posY+25)
+	boxY.Text = tostring(defaultY)
+	boxY.BackgroundColor3 = Color3.fromRGB(50,50,50)
+	boxY.TextColor3 = Color3.new(1,1,1)
+
+	return boxX,boxY
 end
 
--- auto farm loop
-task.spawn(function()
-    while true do
-        if autoFarm then
-            click(X1,Y1)
-            task.wait(0.01)
-            click(X2,Y2)
-            task.wait(0.2)
-            click(X3,Y3)
-            task.wait(0.2)
-        else
-            task.wait()
-        end
-    end
+local box1X,box1Y = createCoord("Quăng cần",10,X1,Y1)
+local box2X,box2Y = createCoord("Skill Z",70,X2,Y2)
+local box3X,box3Y = createCoord("Skill X",130,X3,Y3)
+
+-- SAVE
+local saveBtn = Instance.new("TextButton",setFrame)
+saveBtn.Size = UDim2.new(1,-20,0,30)
+saveBtn.Position = UDim2.new(0,10,0,200)
+saveBtn.Text = "Save"
+saveBtn.BackgroundColor3 = Color3.fromRGB(80,80,80)
+saveBtn.TextColor3 = Color3.new(1,1,1)
+
+saveBtn.MouseButton1Click:Connect(function()
+	X1 = tonumber(box1X.Text) or X1
+	Y1 = tonumber(box1Y.Text) or Y1
+	X2 = tonumber(box2X.Text) or X2
+	Y2 = tonumber(box2Y.Text) or Y2
+	X3 = tonumber(box3X.Text) or X3
+	Y3 = tonumber(box3Y.Text) or Y3
 end)
 
--- bật tắt
+-- CLICK
+local function click(x,y)
+	VirtualInputManager:SendMouseButtonEvent(x,y,0,true,game,0)
+	task.wait(0.01)
+	VirtualInputManager:SendMouseButtonEvent(x,y,0,false,game,0)
+end
+
+-- AUTO FARM
+task.spawn(function()
+	while true do
+		if autoFarm then
+			click(X1,Y1)
+			task.wait(0.01)
+			click(X2,Y2)
+			task.wait(0.2)
+			click(X3,Y3)
+			task.wait(0.2)
+		else
+			task.wait()
+		end
+	end
+end)
+
 farmBtn.MouseButton1Click:Connect(function()
-    autoFarm = not autoFarm
-    farmBtn.Text = "Auto Farm: "..(autoFarm and "ON" or "OFF")
+	autoFarm = not autoFarm
+	farmBtn.Text = "Auto Farm: "..(autoFarm and "ON" or "OFF")
 end)
 
--- minimize
-miniBtn.MouseButton1Click:Connect(function()
-    frame.Visible = false
-    openBtn.Visible = true
+setBtn.MouseButton1Click:Connect(function()
+	setFrame.Visible = not setFrame.Visible
 end)
 
--- mở lại
-openBtn.MouseButton1Click:Connect(function()
-    frame.Visible = true
-    openBtn.Visible = false
+toolBtn.MouseButton1Click:Connect(function()
+	coordMode = not coordMode
+	step = 1
+	toolBtn.Text = "Coordinate Tool: "..(coordMode and "ON" or "OFF")
 end)
 
--- INTRO EFFECT
+-- INTRO
 task.spawn(function()
-    task.wait(5)
+	task.wait(5)
 
-    for i = 1,20 do
-        intro.TextTransparency = i/20
-        task.wait(0.05)
-    end
+	for i = 1,20 do
+		intro.TextTransparency = i/20
+		task.wait(0.05)
+	end
 
-    intro:Destroy()
-    frame.Visible = true
+	intro:Destroy()
+	frame.Visible = true
 end)
