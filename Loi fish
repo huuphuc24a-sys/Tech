@@ -65,41 +65,40 @@ toolBtn.Text = "Coordinate Tool: OFF"
 toolBtn.BackgroundColor3 = Color3.fromRGB(70,70,70)
 toolBtn.TextColor3 = Color3.new(1,1,1)
 
--- SETTINGS FRAME (SCROLL FIX)
-local setFrame = Instance.new("ScrollingFrame",gui)
+-- SETTINGS FRAME
+local setFrame = Instance.new("Frame",gui)
 setFrame.Size = UDim2.new(0,260,0,200)
 setFrame.Position = UDim2.new(0.5,-130,0.5,-100)
 setFrame.BackgroundColor3 = Color3.fromRGB(25,25,25)
 setFrame.Visible = false
 setFrame.Active = true
 setFrame.Draggable = true
-setFrame.ScrollBarThickness = 6
-setFrame.CanvasSize = UDim2.new(0,0,0,260)
 
 local function createCoord(name,posY,defaultX,defaultY)
 
-	local label = Instance.new("TextLabel",setFrame)
-	label.Size = UDim2.new(1,0,0,20)
-	label.Position = UDim2.new(0,0,0,posY)
-	label.Text = name
-	label.TextColor3 = Color3.new(1,1,1)
-	label.BackgroundTransparency = 1
+local label = Instance.new("TextLabel",setFrame)  
+label.Size = UDim2.new(1,0,0,20)  
+label.Position = UDim2.new(0,0,0,posY)  
+label.Text = name  
+label.TextColor3 = Color3.new(1,1,1)  
+label.BackgroundTransparency = 1  
 
-	local boxX = Instance.new("TextBox",setFrame)
-	boxX.Size = UDim2.new(0,110,0,25)
-	boxX.Position = UDim2.new(0,10,0,posY+25)
-	boxX.Text = tostring(defaultX)
-	boxX.BackgroundColor3 = Color3.fromRGB(50,50,50)
-	boxX.TextColor3 = Color3.new(1,1,1)
+local boxX = Instance.new("TextBox",setFrame)  
+boxX.Size = UDim2.new(0,110,0,25)  
+boxX.Position = UDim2.new(0,10,0,posY+25)  
+boxX.Text = tostring(defaultX)  
+boxX.BackgroundColor3 = Color3.fromRGB(50,50,50)  
+boxX.TextColor3 = Color3.new(1,1,1)  
 
-	local boxY = Instance.new("TextBox",setFrame)
-	boxY.Size = UDim2.new(0,110,0,25)
-	boxY.Position = UDim2.new(0,140,0,posY+25)
-	boxY.Text = tostring(defaultY)
-	boxY.BackgroundColor3 = Color3.fromRGB(50,50,50)
-	boxY.TextColor3 = Color3.new(1,1,1)
+local boxY = Instance.new("TextBox",setFrame)  
+boxY.Size = UDim2.new(0,110,0,25)  
+boxY.Position = UDim2.new(0,140,0,posY+25)  
+boxY.Text = tostring(defaultY)  
+boxY.BackgroundColor3 = Color3.fromRGB(50,50,50)  
+boxY.TextColor3 = Color3.new(1,1,1)  
 
-	return boxX,boxY
+return boxX,boxY
+
 end
 
 local box1X,box1Y = createCoord("Quăng cần",10,X1,Y1)
@@ -109,67 +108,138 @@ local box3X,box3Y = createCoord("Skill X",130,X3,Y3)
 -- SAVE
 local saveBtn = Instance.new("TextButton",setFrame)
 saveBtn.Size = UDim2.new(1,-20,0,30)
-saveBtn.Position = UDim2.new(0,10,0,200)
+saveBtn.Position = UDim2.new(0,10,1,-35)
 saveBtn.Text = "Save"
 saveBtn.BackgroundColor3 = Color3.fromRGB(80,80,80)
 saveBtn.TextColor3 = Color3.new(1,1,1)
 
 saveBtn.MouseButton1Click:Connect(function()
-	X1 = tonumber(box1X.Text) or X1
-	Y1 = tonumber(box1Y.Text) or Y1
-	X2 = tonumber(box2X.Text) or X2
-	Y2 = tonumber(box2Y.Text) or Y2
-	X3 = tonumber(box3X.Text) or X3
-	Y3 = tonumber(box3Y.Text) or Y3
+X1 = tonumber(box1X.Text) or X1
+Y1 = tonumber(box1Y.Text) or Y1
+X2 = tonumber(box2X.Text) or X2
+Y2 = tonumber(box2Y.Text) or Y2
+X3 = tonumber(box3X.Text) or X3
+Y3 = tonumber(box3Y.Text) or Y3
 end)
 
 -- CLICK
 local function click(x,y)
-	VirtualInputManager:SendMouseButtonEvent(x,y,0,true,game,0)
-	task.wait(0.01)
-	VirtualInputManager:SendMouseButtonEvent(x,y,0,false,game,0)
+VirtualInputManager:SendMouseButtonEvent(x,y,0,true,game,0)
+task.wait(0.01)
+VirtualInputManager:SendMouseButtonEvent(x,y,0,false,game,0)
 end
 
 -- AUTO FARM
 task.spawn(function()
-	while true do
-		if autoFarm then
-			click(X1,Y1)
-			task.wait(0.01)
-			click(X2,Y2)
-			task.wait(0.2)
-			click(X3,Y3)
-			task.wait(0.2)
-		else
-			task.wait()
-		end
-	end
+while true do
+if autoFarm then
+click(X1,Y1)
+task.wait(0.01)
+click(X2,Y2)
+task.wait(0.2)
+click(X3,Y3)
+task.wait(0.2)
+else
+task.wait()
+end
+end
 end)
 
 farmBtn.MouseButton1Click:Connect(function()
-	autoFarm = not autoFarm
-	farmBtn.Text = "Auto Farm: "..(autoFarm and "ON" or "OFF")
+autoFarm = not autoFarm
+farmBtn.Text = "Auto Farm: "..(autoFarm and "ON" or "OFF")
 end)
 
 setBtn.MouseButton1Click:Connect(function()
-	setFrame.Visible = not setFrame.Visible
+setFrame.Visible = not setFrame.Visible
 end)
 
+-- COORDINATE TOOL
 toolBtn.MouseButton1Click:Connect(function()
-	coordMode = not coordMode
-	step = 1
-	toolBtn.Text = "Coordinate Tool: "..(coordMode and "ON" or "OFF")
+coordMode = not coordMode
+step = 1
+toolBtn.Text = "Coordinate Tool: "..(coordMode and "ON" or "OFF")
+end)
+
+-- CONFIRM GUI
+local confirm = Instance.new("Frame",gui)
+confirm.Size = UDim2.new(0,220,0,120)
+confirm.Position = UDim2.new(0.5,-110,0.5,-60)
+confirm.BackgroundColor3 = Color3.fromRGB(20,20,20)
+confirm.Visible = false
+confirm.Active = true
+
+local text = Instance.new("TextLabel",confirm)
+text.Size = UDim2.new(1,0,0,60)
+text.BackgroundTransparency = 1
+text.TextColor3 = Color3.new(1,1,1)
+
+local yes = Instance.new("TextButton",confirm)
+yes.Size = UDim2.new(0.5,0,0,40)
+yes.Position = UDim2.new(0,0,1,-40)
+yes.Text = "ĐÚNG"
+
+local no = Instance.new("TextButton",confirm)
+no.Size = UDim2.new(0.5,0,0,40)
+no.Position = UDim2.new(0.5,0,1,-40)
+no.Text = "KHÔNG"
+
+local px,py
+
+UIS.InputBegan:Connect(function(input,gameProcessed)
+
+if gameProcessed then return end  
+if not coordMode then return end  
+
+if input.UserInputType == Enum.UserInputType.Touch then  
+
+	local pos = input.Position  
+	px = math.floor(pos.X)  
+	py = math.floor(pos.Y)  
+
+	text.Text = "Bạn có chắc ở đây?\nX:"..px.." Y:"..py  
+	confirm.Visible = true  
+
+end
+
+end)
+
+yes.MouseButton1Click:Connect(function()
+
+if step == 1 then  
+	box1X.Text = px  
+	box1Y.Text = py  
+	step = 2  
+
+elseif step == 2 then  
+	box2X.Text = px  
+	box2Y.Text = py  
+	step = 3  
+
+elseif step == 3 then  
+	box3X.Text = px  
+	box3Y.Text = py  
+	step = 1  
+end  
+
+confirm.Visible = false
+
+end)
+
+no.MouseButton1Click:Connect(function()
+confirm.Visible = false
 end)
 
 -- INTRO
 task.spawn(function()
-	task.wait(5)
+task.wait(5)
 
-	for i = 1,20 do
-		intro.TextTransparency = i/20
-		task.wait(0.05)
-	end
+for i = 1,20 do  hư
+	intro.TextTransparency = i/20  
+	task.wait(0.05)  
+end  
 
-	intro:Destroy()
-	frame.Visible = true
+intro:Destroy()  
+frame.Visible = true
+
 end)
